@@ -1,0 +1,61 @@
+.todo-list .btn-group .btn {
+  border-radius: 20px;
+  margin-right: 5px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.todo-list .btn-group .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.todo-list .btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.todo-list .spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.todo-list .alert {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.1);
+}
+
+.todo-list .fa-inbox {
+  opacity: 0.3;
+}
+
+.todo-list .text-center.py-5 {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 15px;
+  margin: 20px 0;
+  padding: 40px 20px !important;
+}
+
+.todo-list .btn-outline-secondary {
+  border-radius: 20px;
+  font-size: 0.9em;
+}
+
+.todo-list .btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

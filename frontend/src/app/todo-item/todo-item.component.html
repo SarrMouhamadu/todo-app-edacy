@@ -1,0 +1,98 @@
+<div class="todo-item" [class.completed]="todo.completed">
+  <div *ngIf="!isEditing" class="todo-content">
+    <div class="d-flex align-items-start">
+      <div class="form-check me-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          [checked]="todo.completed"
+          [disabled]="isUpdating"
+          (change)="toggleComplete()"
+        >
+        <label class="form-check-label" [for]="'checkbox-' + todo._id">
+          <span *ngIf="isUpdating" class="spinner-border spinner-border-sm"></span>
+        </label>
+      </div>
+      
+      <div class="flex-grow-1">
+        <h6 class="todo-title mb-1">{{ todo.title }}</h6>
+        <p *ngIf="todo.description" class="todo-description mb-2">{{ todo.description }}</p>
+        
+        <div class="todo-meta">
+          <small class="text-muted">
+            <i class="fas fa-calendar-alt me-1"></i>
+            Créé le {{ formatDate(todo.createdAt) }}
+            <span *ngIf="todo.updatedAt && todo.updatedAt !== todo.createdAt">
+              • Modifié le {{ formatDate(todo.updatedAt) }}
+            </span>
+          </small>
+        </div>
+      </div>
+      
+      <div class="todo-actions">
+        <button
+          class="btn btn-sm btn-outline-primary"
+          (click)="startEdit()"
+          [disabled]="isUpdating || isDeleting"
+          title="Modifier"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+        <button
+          class="btn btn-sm btn-outline-danger"
+          (click)="deleteTodo()"
+          [disabled]="isUpdating || isDeleting"
+          title="Supprimer"
+        >
+          <span *ngIf="isDeleting" class="spinner-border spinner-border-sm"></span>
+          <i *ngIf="!isDeleting" class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode édition -->
+  <div *ngIf="isEditing" class="todo-edit">
+    <form (ngSubmit)="saveEdit()">
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          [(ngModel)]="editTitle"
+          name="editTitle"
+          placeholder="Titre de la tâche..."
+          required
+        >
+      </div>
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          [(ngModel)]="editDescription"
+          name="editDescription"
+          placeholder="Description (optionnelle)..."
+        >
+      </div>
+      <div class="d-flex gap-2">
+        <button
+          type="submit"
+          class="btn btn-sm btn-success"
+          [disabled]="!editTitle.trim() || isUpdating"
+        >
+          <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!isUpdating" class="fas fa-save me-1"></i>
+          Sauvegarder
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="cancelEdit()"
+          [disabled]="isUpdating"
+        >
+          <i class="fas fa-times me-1"></i>
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

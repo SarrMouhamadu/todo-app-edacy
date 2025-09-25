@@ -1,0 +1,16 @@
+/* Styles spécifiques au composant principal */
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 15px 15px 0 0 !important;
+}
+
+.card-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
