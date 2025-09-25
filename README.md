@@ -1,18 +1,18 @@
-# 📝 Todo App - Application de Gestion de Tâches
+# Todo App - Application de Gestion de Tâches
 
 Une application web moderne de gestion de tâches construite avec **Express.js**, **Angular** et **MongoDB**, entièrement dockerisée pour un déploiement facile.
 
-## 🚀 Fonctionnalités
+## Fonctionnalités
 
-- ✅ **CRUD complet** : Créer, lire, mettre à jour et supprimer des tâches
-- 🎨 **Interface moderne** : Design responsive avec Bootstrap et animations CSS
-- 🔄 **Temps réel** : Mise à jour instantanée des données
-- 🏷️ **Filtrage** : Filtrer les tâches par statut (toutes, terminées, en attente)
-- ✏️ **Édition inline** : Modifier les tâches directement dans la liste
-- 📱 **Responsive** : Compatible mobile et desktop
-- 🐳 **Dockerisé** : Déploiement facile avec Docker Compose
+- **CRUD complet** : Créer, lire, mettre à jour et supprimer des tâches
+- **Interface moderne** : Design responsive avec Bootstrap et animations CSS
+- **Temps réel** : Mise à jour instantanée des données
+- **Filtrage** : Filtrer les tâches par statut (toutes, terminées, en attente)
+- **Édition inline** : Modifier les tâches directement dans la liste
+- **Responsive** : Compatible mobile et desktop
+- **Dockerisé** : Déploiement facile avec Docker Compose
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Todo App/
@@ -30,7 +30,7 @@ Todo App/
 └── README.md              # Documentation
 ```
 
-## 🛠️ Technologies Utilisées
+## Technologies Utilisées
 
 ### Backend
 - **Node.js** 18+ - Runtime JavaScript
@@ -51,7 +51,7 @@ Todo App/
 - **Docker Compose** - Orchestration multi-conteneurs
 - **Nginx** - Serveur web et proxy reverse
 
-## 🚀 Installation et Déploiement
+## Installation et Déploiement
 
 ### Prérequis
 - Docker et Docker Compose installés
@@ -99,7 +99,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:6.0
 # Ou installer MongoDB localement
 ```
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Base URL: `http://localhost:3000/api`
 
@@ -119,7 +119,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:6.0
 }
 ```
 
-## 🐳 Commandes Docker Utiles
+## Commandes Docker Utiles
 
 ```bash
 # Démarrer tous les services
@@ -141,7 +141,7 @@ docker exec -it todo-mongodb mongosh
 docker-compose down -v
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Variables d'environnement
 
@@ -155,7 +155,7 @@ docker-compose down -v
 - `MONGO_INITDB_ROOT_PASSWORD` : Mot de passe admin
 - `MONGO_INITDB_DATABASE` : Base de données par défaut
 
-## 🧪 Tests
+## Tests
 
 ```bash
 # Tests backend (à implémenter)
@@ -167,7 +167,7 @@ cd frontend
 npm test
 ```
 
-## 📊 Monitoring et Logs
+## Monitoring et Logs
 
 ```bash
 # Voir les logs en temps réel
@@ -179,14 +179,14 @@ docker-compose logs -f frontend
 docker-compose logs -f mongodb
 ```
 
-## 🔒 Sécurité
+## Sécurité
 
 - Utilisateur non-root dans les conteneurs
 - Variables d'environnement pour les secrets
 - Headers de sécurité dans Nginx
 - Validation des données côté serveur
 
-## 🚀 Déploiement en Production
+## Déploiement en Production
 
 1. **Configurer les variables d'environnement**
 2. **Utiliser un reverse proxy (Nginx/Traefik)**
@@ -194,7 +194,7 @@ docker-compose logs -f mongodb
 4. **Sauvegarder la base de données**
 5. **Monitoring et alertes**
 
-## 🤝 Contribution
+## Contribution
 
 1. Fork le projet
 2. Créer une branche feature (`git checkout -b feature/nouvelle-fonctionnalite`)
@@ -202,18 +202,18 @@ docker-compose logs -f mongodb
 4. Push vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
 5. Créer une Pull Request
 
-## 📝 Licence
+## Licence
 
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-## 🆘 Support
+## Support
 
 Pour toute question ou problème :
 - Créer une issue sur GitHub
 - Consulter la documentation
 - Vérifier les logs Docker
 
-## 🎯 Roadmap
+## Roadmap
 
 - [ ] Authentification utilisateur
 - [ ] Catégories de tâches
@@ -225,4 +225,4 @@ Pour toute question ou problème :
 
 ---
 
-**Développé avec ❤️ en utilisant Express.js, Angular et Docker**
+**Développé avec Express.js, Angular et Docker**
