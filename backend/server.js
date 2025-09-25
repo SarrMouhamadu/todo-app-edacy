@@ -1,152 +1,140 @@
 const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const compression = require('compression');
+const morgan = require('morgan');
 require('dotenv').config();
+
+// Import des services et middlewares
+const databaseService = require('./services/databaseService');
+const logger = require('./utils/logger');
+const ErrorHandler = require('./middleware/errorHandler');
+const SecurityMiddleware = require('./middleware/security');
+const RateLimiterMiddleware = require('./middleware/rateLimiter');
+
+// Import des routes
+const apiRoutes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware de compression
+app.use(compression());
 
-// Connexion à MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'Erreur de connexion MongoDB:'));
-db.once('open', () => {
-  console.log('Connecté à MongoDB');
-});
-
-// Modèle Todo
-const todoSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  description: {
-    type: String,
-    trim: true
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+// Middleware de logging
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => logger.info(message.trim())
   }
+}));
+
+// Middleware de sécurité
+app.use(SecurityMiddleware.helmetConfig());
+app.use(SecurityMiddleware.corsConfig());
+app.use(SecurityMiddleware.customSecurityHeaders());
+app.use(SecurityMiddleware.validateContentType());
+app.use(SecurityMiddleware.requestSizeLimiter());
+
+// Rate limiting global
+app.use(RateLimiterMiddleware.generalLimiter());
+
+// Middleware de parsing
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+
+// Middleware de timing des requêtes
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.request(req, res, duration);
+  });
+  
+  next();
 });
 
-const Todo = mongoose.model('Todo', todoSchema);
+// Routes
+app.use('/api', apiRoutes);
 
-// Routes API
-
-// GET /api/todos - Récupérer tous les todos
-app.get('/api/todos', async (req, res) => {
-  try {
-    const todos = await Todo.find().sort({ createdAt: -1 });
-    res.json(todos);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la récupération des todos' });
-  }
-});
-
-// GET /api/todos/:id - Récupérer un todo par ID
-app.get('/api/todos/:id', async (req, res) => {
-  try {
-    const todo = await Todo.findById(req.params.id);
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo non trouvé' });
+// Route racine
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Todo App API - Backend fonctionnel!',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      todos: '/api/todos',
+      health: '/api/health',
+      info: '/api/info'
     }
-    res.json(todo);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la récupération du todo' });
-  }
+  });
 });
 
-// POST /api/todos - Créer un nouveau todo
-app.post('/api/todos', async (req, res) => {
+// Middleware pour les routes non trouvées
+app.use(ErrorHandler.notFound);
+
+// Middleware de gestion d'erreurs global
+app.use(ErrorHandler.handleError);
+
+// Fonction de démarrage du serveur
+async function startServer() {
   try {
-    const { title, description } = req.body;
+    // Connexion à la base de données
+    await databaseService.connect();
     
-    if (!title) {
-      return res.status(400).json({ error: 'Le titre est requis' });
-    }
-
-    const todo = new Todo({
-      title,
-      description: description || ''
+    // Création des index pour optimiser les performances
+    await databaseService.createIndexes();
+    
+    // Démarrage du serveur
+    const server = app.listen(PORT, () => {
+      logger.info(`Serveur démarré sur le port ${PORT}`, {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version,
+        pid: process.pid
+      });
     });
 
-    const savedTodo = await todo.save();
-    res.status(201).json(savedTodo);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la création du todo' });
-  }
-});
-
-// PUT /api/todos/:id - Mettre à jour un todo
-app.put('/api/todos/:id', async (req, res) => {
-  try {
-    const { title, description, completed } = req.body;
-    
-    const updateData = {
-      updatedAt: new Date()
+    // Gestion de la fermeture propre
+    const gracefulShutdown = async (signal) => {
+      logger.info(`Signal ${signal} reçu. Fermeture propre du serveur...`);
+      
+      server.close(async () => {
+        logger.info('Serveur HTTP fermé');
+        
+        try {
+          await databaseService.disconnect();
+          logger.info('Base de données déconnectée');
+          process.exit(0);
+        } catch (error) {
+          logger.error('Erreur lors de la fermeture', error);
+          process.exit(1);
+        }
+      });
     };
-    
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
-    if (completed !== undefined) updateData.completed = completed;
 
-    const todo = await Todo.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    // Écouter les signaux de fermeture
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo non trouvé' });
-    }
+    // Gestion des erreurs non capturées
+    process.on('uncaughtException', (error) => {
+      logger.error('Exception non capturée', error);
+      process.exit(1);
+    });
 
-    res.json(todo);
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('Promesse rejetée non gérée', { reason, promise });
+      process.exit(1);
+    });
+
   } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du todo' });
+    logger.error('Erreur lors du démarrage du serveur', error);
+    process.exit(1);
   }
-});
+}
 
-// DELETE /api/todos/:id - Supprimer un todo
-app.delete('/api/todos/:id', async (req, res) => {
-  try {
-    const todo = await Todo.findByIdAndDelete(req.params.id);
-    
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo non trouvé' });
-    }
-
-    res.json({ message: 'Todo supprimé avec succès' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la suppression du todo' });
-  }
-});
-
-// Route de test
-app.get('/', (req, res) => {
-  res.json({ message: 'API Todo App - Backend fonctionnel!' });
-});
-
-// Démarrage du serveur
-app.listen(PORT, () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
-});
+// Démarrer le serveur
+startServer();
