@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { Document } from 'mongoose';
 
 // Types de base selon les spécifications
 export type TODOStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
@@ -113,68 +112,6 @@ export interface IValidationError {
   value?: any;
 }
 
-// Interface pour les informations de santé
-export interface IHealthInfo {
-  status: string;
-  timestamp: string;
-  uptime: number;
-  environment: string;
-  version: string;
-  memory: {
-    used: number;
-    total: number;
-    external: number;
-  };
-  system: {
-    platform: string;
-    arch: string;
-    cpus: number;
-    loadAverage: number[];
-  };
-  database: {
-    isConnected: boolean;
-    readyState: number;
-    host: string;
-    port: number;
-    name: string;
-  };
-}
-
-// Interface pour les informations API
-export interface IApiInfo {
-  name: string;
-  version: string;
-  description: string;
-  endpoints: {
-    todos: {
-      [key: string]: string;
-    };
-    health: {
-      [key: string]: string;
-    };
-  };
-  documentation: string;
-}
-
-// Interface pour les paramètres de recherche
-export interface ISearchParams {
-  query?: string;
-  filters?: {
-    completed?: boolean;
-    priority?: TodoPriority;
-    dateFrom?: Date;
-    dateTo?: Date;
-  };
-  page?: number;
-  limit?: number;
-}
-
-// Interface pour les résultats de recherche
-export interface ISearchResults {
-  todos: ITodo[];
-  pagination: IPagination;
-}
-
 // Types pour les middlewares
 export interface IRequest extends Request {
   user?: any;
@@ -212,15 +149,6 @@ export interface ITODOItemService {
   getTODOItemStats(todoListId?: string): Promise<ITODOItemStats>;
 }
 
-export interface IDatabaseService {
-  connect(): Promise<void>;
-  disconnect(): Promise<void>;
-  getConnectionStatus(): any;
-  getDatabaseStats(): Promise<any>;
-  cleanDatabase(): Promise<void>;
-  createIndexes(): Promise<void>;
-}
-
 // Types pour les contrôleurs TODOList
 export interface ITODOListController {
   getAllTODOLists(req: IRequest, res: IResponse): Promise<void>;
@@ -245,125 +173,89 @@ export interface ITODOItemController {
   getTODOItemStats(req: IRequest, res: IResponse): Promise<void>;
 }
 
-export interface IHealthController {
-  healthCheck(req: IRequest, res: IResponse): Promise<void>;
-  apiInfo(req: IRequest, res: IResponse): Promise<void>;
-}
-
-// Types pour les constantes
-export interface IAppConstants {
+// Constantes de l'application
+export const APP_CONSTANTS = {
   TODO_STATUS: {
-    TODO: TODOStatus;
-    IN_PROGRESS: TODOStatus;
-    DONE: TODOStatus;
-  };
+    TODO: 'TODO' as TODOStatus,
+    IN_PROGRESS: 'IN_PROGRESS' as TODOStatus,
+    DONE: 'DONE' as TODOStatus
+  },
   ITEM_STATUS: {
-    DONE: ItemStatus;
-    NOT_DONE: ItemStatus;
-  };
+    DONE: 'DONE' as ItemStatus,
+    NOT_DONE: 'NOT_DONE' as ItemStatus
+  },
   MESSAGES: {
-    SUCCESS: { [key: string]: string };
-    ERROR: { [key: string]: string };
-  };
-  HTTP_STATUS: { [key: string]: number };
+    SUCCESS: {
+      TODO_LIST_CREATED: 'TODOList créée avec succès',
+      TODO_LIST_UPDATED: 'TODOList mise à jour avec succès',
+      TODO_LIST_DELETED: 'TODOList supprimée avec succès',
+      TODO_LIST_RETRIEVED: 'TODOList récupérée avec succès',
+      TODO_LISTS_RETRIEVED: 'TODOLists récupérées avec succès',
+      TODO_ITEM_CREATED: 'TODOItem créé avec succès',
+      TODO_ITEM_UPDATED: 'TODOItem mis à jour avec succès',
+      TODO_ITEM_DELETED: 'TODOItem supprimé avec succès',
+      TODO_ITEM_RETRIEVED: 'TODOItem récupéré avec succès',
+      TODO_ITEMS_RETRIEVED: 'TODOItems récupérés avec succès',
+      STATUS_TOGGLED: 'Statut mis à jour avec succès',
+      STATS_RETRIEVED: 'Statistiques récupérées avec succès'
+    },
+    ERROR: {
+      TODO_LIST_NOT_FOUND: 'TODOList non trouvée',
+      TODO_ITEM_NOT_FOUND: 'TODOItem non trouvé',
+      INVALID_DATA: 'Données invalides',
+      VALIDATION_FAILED: 'Validation échouée',
+      SERVER_ERROR: 'Erreur interne du serveur',
+      DATABASE_ERROR: 'Erreur de base de données',
+      UNAUTHORIZED: 'Non autorisé',
+      FORBIDDEN: 'Accès interdit',
+      NOT_FOUND: 'Ressource non trouvée',
+      CONFLICT: 'Conflit de ressources',
+      TOO_MANY_REQUESTS: 'Trop de requêtes',
+      SERVICE_UNAVAILABLE: 'Service indisponible'
+    }
+  },
+  HTTP_STATUS: {
+    OK: 200,
+    CREATED: 201,
+    NO_CONTENT: 204,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    UNPROCESSABLE_ENTITY: 422,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL_SERVER_ERROR: 500,
+    SERVICE_UNAVAILABLE: 503
+  },
   PAGINATION: {
-    DEFAULT_PAGE: number;
-    DEFAULT_LIMIT: number;
-    MAX_LIMIT: number;
-    MIN_LIMIT: number;
-  };
-  RATE_LIMIT: {
-    WINDOW_MS: number;
-    MAX_REQUESTS: number;
-    CREATE_WINDOW_MS: number;
-    MAX_CREATE_REQUESTS: number;
-    DELETE_WINDOW_MS: number;
-    MAX_DELETE_REQUESTS: number;
-    SEARCH_WINDOW_MS: number;
-    MAX_SEARCH_REQUESTS: number;
-  };
-  VALIDATION: {
-    TITLE: {
-      MIN_LENGTH: number;
-      MAX_LENGTH: number;
-    };
-    DESCRIPTION: {
-      MAX_LENGTH: number;
-    };
-    SEARCH: {
-      MAX_LENGTH: number;
-    };
-  };
-  DATABASE: {
-    CONNECTION_TIMEOUT: number;
-    SOCKET_TIMEOUT: number;
-    MAX_POOL_SIZE: number;
-  };
-  LOGGING: {
-    LEVELS: { [key: string]: string };
-    DEFAULT_LEVEL: string;
-  };
-  SECURITY: {
-    MAX_REQUEST_SIZE: string;
-    ALLOWED_ORIGINS: string[];
-  };
-  API: {
-    VERSION: string;
-    NAME: string;
-    DESCRIPTION: string;
-  };
-}
-
-// Types pour les tests
-export interface ITestConfig {
-  port: number;
-  database: string;
-  timeout: number;
-}
-
-export interface ITestData {
-  validTodo: ICreateTodo;
-  invalidTodo: Partial<ICreateTodo>;
-  updateData: IUpdateTodo;
-}
-
-// Types pour les erreurs personnalisées
-export class AppError extends Error {
-  public statusCode: number;
-  public isOperational: boolean;
-
-  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
-    super(message);
-    this.statusCode = statusCode;
-    this.isOperational = isOperational;
-
-    Error.captureStackTrace(this, this.constructor);
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 10,
+    MAX_LIMIT: 100,
+    MIN_LIMIT: 1
   }
-}
+};
 
-// Types pour les utilitaires
-export interface ILogger {
-  info(message: string, meta?: any): void;
-  error(message: string, error?: any): void;
-  warn(message: string, meta?: any): void;
-  debug(message: string, meta?: any): void;
-  request(req: IRequest, res: IResponse, responseTime: number): void;
-}
+// Fonctions utilitaires pour les constantes
+export const getMessage = (category: keyof typeof APP_CONSTANTS.MESSAGES, key: string) => {
+  return APP_CONSTANTS.MESSAGES[category]?.[key] || 'Message non défini';
+};
 
-export interface IResponseHelper {
-  success(res: IResponse, data?: any, message?: string, statusCode?: number): void;
-  error(res: IResponse, message?: string, statusCode?: number, errors?: any): void;
-  validationError(res: IResponse, errors: IValidationError[]): void;
-  notFound(res: IResponse, message?: string): void;
-  unauthorized(res: IResponse, message?: string): void;
-  forbidden(res: IResponse, message?: string): void;
-  conflict(res: IResponse, message?: string): void;
-  paginated(res: IResponse, data: any, pagination: IPagination, message?: string): void;
-  created(res: IResponse, data: any, message?: string): void;
-  updated(res: IResponse, data: any, message?: string): void;
-  deleted(res: IResponse, data?: any, message?: string): void;
-  tooManyRequests(res: IResponse, message?: string, retryAfter?: string): void;
-  serviceUnavailable(res: IResponse, message?: string): void;
-  formatValidationErrors(errors: any[]): IValidationError[];
-  addPaginationHeaders(res: IResponse, pagination: IPagination): void;
-}
+export const getHttpStatus = (key: keyof typeof APP_CONSTANTS.HTTP_STATUS) => {
+  return APP_CONSTANTS.HTTP_STATUS[key] || 500;
+};
+
+export const isValidTODOStatus = (status: string): status is TODOStatus => {
+  return Object.values(APP_CONSTANTS.TODO_STATUS).includes(status as TODOStatus);
+};
+
+export const isValidItemStatus = (status: string): status is ItemStatus => {
+  return Object.values(APP_CONSTANTS.ITEM_STATUS).includes(status as ItemStatus);
+};
+
+export const getDefaultPagination = () => {
+  return {
+    page: APP_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    limit: APP_CONSTANTS.PAGINATION.DEFAULT_LIMIT
+  };
+};
